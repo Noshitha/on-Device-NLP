@@ -1,71 +1,91 @@
-# %%
 import torch
 from transformers import MarianMTModel, MarianTokenizer
 from datasets import load_dataset
 import evaluate
-from itertools import islice
 from torch.utils.data import DataLoader
-import os
-os.environ['TRANSFORMERS_CACHE'] = '/scratch3/workspace/sudhanshukul_umass_edu-sudhanshuCache'
-def evaluate_translation(model_name, src_lang, tgt_lang, dataset_name, dataset_config, batch_size=16, num_samples=500):
-    # Load the pre-trained model and tokenizer
-    print("Loading the model and tokenizer now")
+
+def evaluate_translation(model_name, src_lang, tgt_lang, dataset_name, dataset_config, batch_size=8, max_length=128, num_samples=500):
+    # Load the model and tokenizer
     tokenizer = MarianTokenizer.from_pretrained(model_name)
     model = MarianMTModel.from_pretrained(model_name)
-    print("Loaded the model and tokenizer")
+    
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
+    
     if torch.cuda.device_count() > 1:
         model = torch.nn.DataParallel(model)
-    print("Loading the dataset now")
-    dataset = load_dataset(dataset_name, dataset_config, split="test[:5]")
-    print("Loaded the dataset now")
+
+    # Load only a subset of the dataset
+    dataset = load_dataset(dataset_name, dataset_config, split=f"test[:{num_samples}]")
+
+    # Identity collate function so the DataLoader doesn't do extra merging
     def identity_collate(batch):
         return batch
-    dataloader = DataLoader(dataset, batch_size=batch_size,collate_fn=identity_collate)
+
+    # DataLoader with batch_size=1
+    dataloader = DataLoader(dataset, batch_size=batch_size, collate_fn=identity_collate)
+
     predictions = []
     references = []
-    print(f"Evaluating {model_name} for {src_lang} → {tgt_lang} on {len(dataset)} examples in batches of {batch_size}")
-    def get_texts(ex, src_lang, tgt_lang):
-        
-        translation = ex["translation"]
-        return translation.get(src_lang, ""), translation.get(tgt_lang, "")
 
     model.eval()
     with torch.no_grad():
         for batch in dataloader:
-            src_texts = []
-            tgt_texts = []
-            for ex in batch:
-                
-        
-                #%%
-                src, tgt = get_texts(ex, src_lang, tgt_lang)
-                src_texts.append(src)
-                tgt_texts.append(tgt)
+            # batch is a list of 1 element since batch_size=1
+            ex = batch[0]
             
-            # Tokenize the batch of source texts
-            encoded_inputs = tokenizer(src_texts, return_tensors="pt", padding=True, truncation=True)
-            encoded_inputs = {key: value.to(device) for key, value in encoded_inputs.items()}
-            
-            # Generate translations for the batch
-            generated_ids = model.module.generate(**encoded_inputs, max_length=128)
+            # Extract source and target text
+            src_text = ex["translation"][src_lang]
+            tgt_text = ex["translation"][tgt_lang]
 
+            # Check token length before generation
+            tokens = tokenizer(src_text, truncation=False, add_special_tokens=False).input_ids
+            if len(tokens) > max_length:
+               
+                continue
 
-            batch_preds = [tokenizer.decode(g, skip_special_tokens=True) for g in generated_ids]
-            
-            predictions.extend(batch_preds)
-            # sacreBLEU expects each reference to be a list of references per prediction
-            references.extend([[t] for t in tgt_texts])
+            # Tokenize with actual truncation for generation
+            encoded_inputs = tokenizer(
+                src_text,
+                return_tensors="pt",
+                truncation=True,
+                max_length=max_length,
+                padding=True
+            ).to(device)
 
+            # Generate translation
+            if torch.cuda.device_count() > 1:
+                generated_ids = model.module.generate(**encoded_inputs, max_length=max_length)
+            else:
+                generated_ids = model.generate(**encoded_inputs, max_length=max_length)
+
+            # Decode predictions
+            pred_text = tokenizer.decode(generated_ids[0], skip_special_tokens=True)
+            predictions.append(pred_text)
+            # Each reference is itself a list of one reference string
+            references.append([tgt_text])
+
+    # Compute BLEU score
     bleu = evaluate.load("sacrebleu")
-    # Compute BLEU; note that references need to be formatted correctly
-    result = bleu.compute(predictions=predictions, references=references)
+    results = bleu.compute(predictions=predictions, references=references)
 
-    print(f"BLEU score for {src_lang} → {tgt_lang} using {model_name}: {result['score']:.2f}\n")
+    print(f"Processed {len(predictions)} examples (skipped those > {max_length} tokens).")
+    print(f"BLEU Score for {src_lang} → {tgt_lang}: {results['score']:.2f}")
 
-#27.27 - test set of 500 examples
 
+
+evaluate_translation(
+    model_name="Helsinki-NLP/opus-mt-en-fr",
+    src_lang="en",
+    tgt_lang="fr",
+    dataset_name="wmt14",
+    dataset_config="fr-en",
+    batch_size=1,      # Only process one sample at a time
+    max_length=128,    # Skip examples exceeding 128 tokens
+    num_samples=100    # Evaluate first 100 test samples
+)
+
+# 27.76 on 500 samples
 # evaluate_translation(
 #     model_name="Helsinki-NLP/opus-mt-en-de",
 #     src_lang="en",
@@ -75,10 +95,3 @@ def evaluate_translation(model_name, src_lang, tgt_lang, dataset_name, dataset_c
 # )
 
 
-evaluate_translation(
-    model_name="Helsinki-NLP/opus-mt-en-fr",
-    src_lang="en",
-    tgt_lang="fr",
-    dataset_name="wmt14",
-    dataset_config="fr-en"
-)
