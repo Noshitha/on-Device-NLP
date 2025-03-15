@@ -1,2 +1,3 @@
 Please Ignore the main branch. 
-Baseline in translation/baseline and quantization is being built in translation/quantization
+Translation/baseline has the baseline model
+Translation/quantization has the code setup for quantization
