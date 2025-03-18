@@ -1,0 +1,5 @@
+evaluate==0.4.3
+sacrebleu==2.5.1
+sentencepiece==0.2.0
+torch==2.5.1
+transformers==4.48.0
