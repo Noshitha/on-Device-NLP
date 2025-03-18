@@ -16,7 +16,8 @@ def evaluate_translation(model_name, src_lang, tgt_lang, dataset_name, dataset_c
         model = torch.nn.DataParallel(model)
 
     # Load only a subset of the dataset
-    dataset = load_dataset(dataset_name, dataset_config, split=f"test[:{num_samples}]")
+    dataset = load_dataset(dataset_name, dataset_config, split="test", streaming=True)
+    dataset = dataset.take(num_samples)
 
     # Identity collate function so the DataLoader doesn't do extra merging
     def identity_collate(batch):
@@ -91,7 +92,10 @@ evaluate_translation(
 #     src_lang="en",
 #     tgt_lang="de",
 #     dataset_name="wmt14",
-#     dataset_config="de-en"
+#     dataset_config="de-en",
+#     batch_size=1,      # Only process one sample at a time
+#     max_length=128,    # Skip examples exceeding 128 tokens
+#     num_samples=10    # Evaluate first 10 test samples
 # )
 
 
