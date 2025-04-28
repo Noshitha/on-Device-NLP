@@ -9,6 +9,8 @@ conda init
 conda activate ondevicenlp 
 # Construct the filename based on the passed argument and run the corresponding Python script
 
+source /home/njuttu_umass_edu/venvs/torch_env/bin/activate
+
 export HF_HOME=/scratch3/workspace/mkarna_umass_edu-on-device-nlp
 export HF_TOKEN='...'
 
