@@ -6,6 +6,7 @@ from transformers import MarianConfig
 from transformers.generation.logits_process import LogitsProcessor
 from core.utils import create_model_for_provider
 from transformers.generation import GenerationMixin
+
 """
 ONNX inference logic
 Loads encoder and decoder ONNX models
@@ -61,6 +62,13 @@ class MarianOnnx(GenerationMixin):
         self.config.force_bos_token_to_be_generated = False
 
         self.final_logits_weight = torch.load(os.path.join(path, 'lm_weight.bin')).to(self.device)
+        self.final_logits_weight = torch.load(os.path.join(path, 'lm_weight.bin')).to(self.device)
+
+        # Dequantize embedding weights at load time
+        if self.final_logits_weight.dtype == torch.int8:
+            print("Dequantizing embedding weights...")
+            self.final_logits_weight = self.final_logits_weight.float()
+
         self.final_logits_bias = torch.load(os.path.join(path, 'lm_bias.bin')).to(self.device)
 
         self.logits_processor = CustomLogitsProcessor(

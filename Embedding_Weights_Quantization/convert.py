@@ -2,7 +2,7 @@ import os
 import warnings
 warnings.filterwarnings('ignore')
 import sys
-sys.path.append("/home/njuttu_umass_edu/on-DeviceNLP-2/Baseline_to_ONNX") 
+sys.path.append("/home/njuttu_umass_edu/on-DeviceNLP-2/Embedding_Weights_Quantization") 
 import shutil
 import argparse
 from transformers import MarianMTModel, MarianTokenizer
@@ -14,7 +14,7 @@ PARAMS = None
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("input", type=str, help="Hugging Face model identifier, e.g., 'Helsinki-NLP/opus-mt-en-de'")
-    parser.add_argument("-o", "--output", type=str, default="./out", help="Output directory.")
+    parser.add_argument("-o", "--output", type=str, default="./embedding_Quant_out", help="Output directory.")
     parser.add_argument("--no-quantize", action="store_false", default=True,
                         help="Disable model quantization.")
     return parser.parse_args()

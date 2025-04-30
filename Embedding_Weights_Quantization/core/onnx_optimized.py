@@ -1,7 +1,7 @@
 import os
 from onnxruntime.quantization import quantize_dynamic, QuantType
 
-def quantize(path):
+def optimize_onnx(path):
     """
     Quantize the weights of the model from float32 to int8 for efficient inference.
     Args:

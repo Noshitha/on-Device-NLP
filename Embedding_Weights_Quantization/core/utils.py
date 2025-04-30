@@ -5,6 +5,8 @@ from transformers import MarianMTModel, MarianTokenizer
 from onnxruntime import GraphOptimizationLevel, InferenceSession, SessionOptions
 from core.layers import MarianDecoder, MarianEncoder
 from core.quantize import quantize
+from core.onnx_optimized import optimize_onnx
+
 
 """
 Handles model extraction and ONNX export:
@@ -83,6 +85,7 @@ def generate_onnx_graph(model_path, encoder_path, decoder_path, outdir, quant=Tr
         encoder_path,
         export_params=True,
         opset_version=12,
+        do_constant_folding=False,
         input_names=["input_ids", "attention_mask"],
         output_names=["encoder_hidden_states"],
         dynamic_axes={
@@ -91,11 +94,12 @@ def generate_onnx_graph(model_path, encoder_path, decoder_path, outdir, quant=Tr
             "encoder_hidden_states": {0: "batch", 1: "sequence"},
         }
     )
-    if quant:
-        quantize(encoder_path)
-
     # if quant:
-    #     quantize(encoder_path, outdir)
+    #     quantize(encoder_path)
+
+    if quant:
+        quantize(encoder_path, outdir)
+        optimize_onnx(encoder_path) 
 
 
     print("Exporting decoder to ONNX...")
@@ -115,8 +119,9 @@ def generate_onnx_graph(model_path, encoder_path, decoder_path, outdir, quant=Tr
             "decoder_output": {0: "batch", 1: "sequence"},
         }
     )
-    if quant:
-        quantize(decoder_path)
-
     # if quant:
-    #     quantize(decoder_path, outdir)
+    #     quantize(decoder_path)
+
+    if quant:
+        quantize(decoder_path, outdir)
+        optimize_onnx(encoder_path) 
