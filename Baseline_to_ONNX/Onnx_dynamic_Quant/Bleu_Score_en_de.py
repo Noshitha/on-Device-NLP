@@ -5,8 +5,8 @@ from transformers import MarianTokenizer
 from datasets import load_dataset
 from sacrebleu import corpus_bleu
 from tqdm import tqdm
-
-sys.path.append("/home/njuttu_umass_edu/on-DeviceNLP-2/Pytorch_to_ONNX")
+import sys
+sys.path.append("/home/njuttu_umass_edu/on-DeviceNLP-2/Baseline_to_ONNX/Onnx_dynamic_Quant")
 from core.marian import MarianOnnx
 
 SRC_LANG = "en"
@@ -16,8 +16,8 @@ NUM_SAMPLES = 50 # For less memory usage
 SPLIT = "train"
 BATCH_SIZE = 2   # To prevent memory issues
 
-PYTORCH_MODEL_DIR = "/home/njuttu_umass_edu/on-DeviceNLP-2/local_model/Helsinki-NLP_opus-mt-en-de"
-ONNX_MODEL_DIR = "/home/njuttu_umass_edu/on-DeviceNLP-2/outs/Helsinki-NLP_opus-mt-en-de"
+PYTORCH_MODEL_DIR = "/home/njuttu_umass_edu/on-DeviceNLP-2/Baseline_to_ONNX/local_model/Helsinki-NLP_opus-mt-en-de"
+ONNX_MODEL_DIR = "/home/njuttu_umass_edu/on-DeviceNLP-2/Baseline_to_ONNX/outs_ONNX/Helsinki-NLP_opus-mt-en-de"
 
 def prepare_dataset(dataset):
     inputs = []

@@ -1,0 +1,12 @@
+Loading ONNX model from /home/njuttu_umass_edu/on-DeviceNLP-2/Vocab_Red_to_ONNX/Onnx_dynamic_Quant/vocab_red_onnx_output/en-fr-8000-1000000-finetuned
+Loading WMT dataset...
+
+The BLEU Score (ONNX, validation[:50]): 19.88
+Results saved to /home/njuttu_umass_edu/on-DeviceNLP-2/Vocab_Red_to_ONNX/Onnx_dynamic_Quant/vocab_red_onnx_output/en-fr-8000-1000000-finetuned/bleu_eval_50 directory
+Loading ONNX model from /home/njuttu_umass_edu/on-DeviceNLP-2/Vocab_Red_to_ONNX/Onnx_dynamic_Quant/vocab_red_onnx_output/en-fr-8000-1000000-finetuned
+Loading WMT dataset...
+
+The BLEU Score (ONNX, validation[:100]): 17.88
+Results saved to /home/njuttu_umass_edu/on-DeviceNLP-2/Vocab_Red_to_ONNX/Onnx_dynamic_Quant/vocab_red_onnx_output/en-fr-8000-1000000-finetuned/bleu_eval_100 directory
+Loading ONNX model from /home/njuttu_umass_edu/on-DeviceNLP-2/Vocab_Red_to_ONNX/Onnx_dynamic_Quant/vocab_red_onnx_output/en-fr-8000-1000000-finetuned
+Loading WMT dataset...
