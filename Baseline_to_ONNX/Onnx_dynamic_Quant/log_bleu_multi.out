@@ -1,0 +1,30 @@
+Loading ONNX model from /home/njuttu_umass_edu/on-DeviceNLP-2/Baseline_to_ONNX/outs_ONNX/Helsinki-NLP_opus-mt-en-de
+Loading WMT dataset...
+
+The BLEU Score (ONNX, validation[:100]): 29.23
+Results saved to /home/njuttu_umass_edu/on-DeviceNLP-2/Baseline_to_ONNX/outs_ONNX/Helsinki-NLP_opus-mt-en-de/bleu_eval_100 directory
+Loading ONNX model from /home/njuttu_umass_edu/on-DeviceNLP-2/Baseline_to_ONNX/outs_ONNX/Helsinki-NLP_opus-mt-en-de
+Loading WMT dataset...
+
+The BLEU Score (ONNX, validation[:500]): 28.19
+Results saved to /home/njuttu_umass_edu/on-DeviceNLP-2/Baseline_to_ONNX/outs_ONNX/Helsinki-NLP_opus-mt-en-de/bleu_eval_500 directory
+Loading ONNX model from /home/njuttu_umass_edu/on-DeviceNLP-2/Baseline_to_ONNX/outs_ONNX/Helsinki-NLP_opus-mt-en-de
+Loading WMT dataset...
+
+The BLEU Score (ONNX, validation[:1000]): 24.09
+Results saved to /home/njuttu_umass_edu/on-DeviceNLP-2/Baseline_to_ONNX/outs_ONNX/Helsinki-NLP_opus-mt-en-de/bleu_eval_1000 directory
+Loading ONNX model from /home/njuttu_umass_edu/on-DeviceNLP-2/Baseline_to_ONNX/outs_ONNX_quantized/Helsinki-NLP_opus-mt-en-de
+Loading WMT dataset...
+
+The BLEU Score (ONNX, validation[:100]): 29.09
+Results saved to /home/njuttu_umass_edu/on-DeviceNLP-2/Baseline_to_ONNX/outs_ONNX_quantized/Helsinki-NLP_opus-mt-en-de/bleu_eval_100 directory
+Loading ONNX model from /home/njuttu_umass_edu/on-DeviceNLP-2/Baseline_to_ONNX/outs_ONNX_quantized/Helsinki-NLP_opus-mt-en-de
+Loading WMT dataset...
+
+The BLEU Score (ONNX, validation[:500]): 28.40
+Results saved to /home/njuttu_umass_edu/on-DeviceNLP-2/Baseline_to_ONNX/outs_ONNX_quantized/Helsinki-NLP_opus-mt-en-de/bleu_eval_500 directory
+Loading ONNX model from /home/njuttu_umass_edu/on-DeviceNLP-2/Baseline_to_ONNX/outs_ONNX_quantized/Helsinki-NLP_opus-mt-en-de
+Loading WMT dataset...
+
+The BLEU Score (ONNX, validation[:1000]): 24.17
+Results saved to /home/njuttu_umass_edu/on-DeviceNLP-2/Baseline_to_ONNX/outs_ONNX_quantized/Helsinki-NLP_opus-mt-en-de/bleu_eval_1000 directory
