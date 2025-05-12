@@ -2,142 +2,150 @@ import torch
 from transformers import MarianMTModel, MarianTokenizer
 from datasets import load_dataset
 import evaluate
-from torch.utils.data import DataLoader
 from comet import download_model, load_from_checkpoint
+import time
 
-def evaluate_translation(model_name, src_lang, tgt_lang, dataset_name, dataset_config, batch_size=8, max_length=128, num_samples=500):
-    # Load the model and tokenizer
+def evaluate_baseline(
+    model_name: str,
+    src_lang: str,
+    tgt_lang: str,
+    dataset_name: str,
+    dataset_config: str,
+    max_length: int = 128,
+    num_samples: int = 500,
+):
+    # ─── Load model & tokenizer ────────────────────────────────────────────────
     tokenizer = MarianTokenizer.from_pretrained(model_name)
     model = MarianMTModel.from_pretrained(model_name)
-    
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
-    
     if torch.cuda.device_count() > 1:
         model = torch.nn.DataParallel(model)
 
-    # Load only a subset of the dataset
-    dataset = load_dataset(dataset_name, dataset_config, split=f"test[:{num_samples}]")
+    # ─── Prepare dataset subset ────────────────────────────────────────────────
+    ds = load_dataset(dataset_name, dataset_config, split="test")
+    dataset = ds.select(range(num_samples))
 
-    # Identity collate function so the DataLoader doesn't do extra merging
-    def identity_collate(batch):
-        return batch
-
-    # DataLoader with batch_size=1
-    dataloader = DataLoader(dataset, batch_size=batch_size, collate_fn=identity_collate)
-
-    predictions = []
-    references = []
-
+    # ─── Generation + timing ───────────────────────────────────────────────────
     model.eval()
+    predictions, references, src_texts = [], [], []
+    total_tokens = 0
+
+    # warm up sync & timer
+    if torch.cuda.is_available():
+        torch.cuda.synchronize()
+    t_start = time.perf_counter()
+
     with torch.no_grad():
-        for batch in dataloader:
-            # batch is a list of 1 element since batch_size=1
-            ex = batch[0]
-            
-            # Extract source and target text
-            src_text = ex["translation"][src_lang]
-            tgt_text = ex["translation"][tgt_lang]
+        for ex in dataset:
+            src = ex["translation"][src_lang]
+            ref = ex["translation"][tgt_lang]
 
-            # Check token length before generation
-            tokens = tokenizer(src_text, truncation=False, add_special_tokens=False).input_ids
-            if len(tokens) > max_length:
-               
-                continue
-
-            # Tokenize with actual truncation for generation
-            encoded_inputs = tokenizer(
-                src_text,
+            # tokenize → device
+            inputs = tokenizer(
+                src,
                 return_tensors="pt",
                 truncation=True,
                 max_length=max_length,
-                padding=True
-            ).to(device)
+            )
+            inputs = {k: v.to(device) for k, v in inputs.items()}
 
-            # Generate translation
-            if torch.cuda.device_count() > 1:
-                generated_ids = model.module.generate(**encoded_inputs, max_length=max_length)
+            # sync → generate → sync
+            if torch.cuda.is_available():
+                torch.cuda.synchronize()
+            if isinstance(model, torch.nn.DataParallel):
+                out_ids = model.module.generate(**inputs, max_length=max_length)
             else:
-                generated_ids = model.generate(**encoded_inputs, max_length=max_length)
+                out_ids = model.generate(**inputs, max_length=max_length)
+            if torch.cuda.is_available():
+                torch.cuda.synchronize()
 
-            # Decode predictions
-            pred_text = tokenizer.decode(generated_ids[0], skip_special_tokens=True)
-            predictions.append(pred_text)
-            # Each reference is itself a list of one reference string
-            references.append([tgt_text])
+            # count tokens & decode
+            total_tokens += out_ids.numel()
+            pred = tokenizer.decode(out_ids[0], skip_special_tokens=True)
 
-    # Compute BLEU score
-    # bleu = evaluate.load("sacrebleu")
-    # results = bleu.compute(predictions=predictions, references=references)
+            predictions.append(pred)
+            references.append([ref])
+            src_texts.append(src)
 
-    # print(f"Processed {len(predictions)} examples (skipped those > {max_length} tokens).")
-    # print(f"BLEU Score for {src_lang} → {tgt_lang}: {results['score']:.2f}")
+    # final sync & stop timer
+    if torch.cuda.is_available():
+        torch.cuda.synchronize()
+    t_end = time.perf_counter()
+    gen_time = t_end - t_start
 
-    bleu = evaluate.load("sacrebleu")
-    chrf = evaluate.load("chrf")
-    ter = evaluate.load("ter")
-    meteor = evaluate.load("meteor")
+    # ─── Load & compute metrics ────────────────────────────────────────────────
+    print(f"\nEvaluated {len(predictions)} examples (max_length={max_length}, samples={num_samples})\n")
 
-    # Download and load COMET model
-    model_path = download_model("Unbabel/wmt22-comet-da")
-    comet_model = load_from_checkpoint(model_path)
+    bleu      = evaluate.load("sacrebleu")
+    chrf      = evaluate.load("chrf")
+    ter       = evaluate.load("ter")
+    meteor    = evaluate.load("meteor")
+    bleurt    = evaluate.load("bleurt", config_name="bleurt-20-D12")
+    bertscore = evaluate.load("bertscore")
 
-    # COMET expects a list of dicts with: src, ref, mt
-    comet_inputs = [
-        {"src": ex["translation"][src_lang], "ref": ref[0], "mt": pred}
-        for ex, pred, ref in zip(dataset, predictions, references)
+    # COMET
+    comet_path  = download_model("Unbabel/wmt22-comet-da")
+    comet_mod   = load_from_checkpoint(comet_path)
+    comet_inputs= [
+        {"src": s, "ref": r[0], "mt": p}
+        for s, r, p in zip(src_texts, references, predictions)
     ]
+    comet_score = comet_mod.predict(
+        comet_inputs,
+        batch_size=8,
+        gpus=1 if torch.cuda.is_available() else 0
+    )
 
-    # Predict scores (GPU if available)
-    comet_score = comet_model.predict(comet_inputs, batch_size=8, gpus=1 if torch.cuda.is_available() else 0)
+    # metric computations
+    bleu_res   = bleu.compute(predictions=predictions, references=references)
+    chrf_res   = chrf.compute(predictions=predictions, references=references)
+    ter_res    = ter.compute(predictions=predictions, references=references)
+    meteor_res = meteor.compute(predictions=predictions, references=[r[0] for r in references])
+    bleurt_res = bleurt.compute(predictions=predictions, references=[r[0] for r in references])
+    bert_res   = bertscore.compute(
+                    predictions=predictions,
+                    references=[r[0] for r in references],
+                    lang=tgt_lang
+                )
 
+    # ─── Print all metric results ─────────────────────────────────────────────
+    print(f"BLEU:  {bleu_res['score']:.2f}")
+    print(f"CHRF:  {chrf_res['score']:.2f}")
+    print(f"TER:   {ter_res['score']:.2f}")
+    print(f"METEOR:{meteor_res['meteor']:.2f}")
+    print(f"BLEURT (avg):   {sum(bleurt_res['scores'])/len(bleurt_res['scores']):.4f}")
+    print(f"BERTScore F1 (avg): {sum(bert_res['f1'])/len(bert_res['f1']):.4f}")
+    print(f"COMET (avg):     {sum(comet_score.scores)/len(comet_score.scores):.4f}")
 
-    bleu_result = bleu.compute(predictions=predictions, references=references)
-    chrf_result = chrf.compute(predictions=predictions, references=references)
-    ter_result = ter.compute(predictions=predictions, references=references)
-    meteor_result = meteor.compute(predictions=predictions, references=references)
-
-    print(f"Processed {len(predictions)} examples (skipped those > {max_length} tokens).")
-    print(f"BLEU Score: {bleu_result['score']:.2f}")
-    print(f"CHRF Score: {chrf_result['score']:.2f}")
-    print(f"TER Score: {ter_result['score']:.2f}")
-    print(f"METEOR Score: {meteor_result['meteor']:.2f}")
-    print(f"COMET Score (avg): {sum(comet_score.scores)/len(comet_score.scores):.4f}")
-
-
-
-
-
-# evaluate_translation(
-#     model_name="Helsinki-NLP/opus-mt-en-fr",
-#     src_lang="en",
-#     tgt_lang="fr",
-#     dataset_name="wmt14",
-#     dataset_config="fr-en",
-#     batch_size=1,      # Only process one sample at a time
-#     max_length=128,    # Skip examples exceeding 128 tokens
-#     num_samples=1000    # Evaluate first 100 test samples
-# )
-
-evaluate_translation(
-    model_name="Helsinki-NLP/opus-mt-en-de",
-    src_lang="en",
-    tgt_lang="de",
-    dataset_name="wmt14",
-    dataset_config="de-en",
-    batch_size=1,      # Only process one sample at a time
-    max_length=128,    # Skip examples exceeding 128 tokens
-    num_samples=10    # Evaluate first 100 test samples
-)
-
-# 27.76 on 500 samples
-# evaluate_translation(
-#     model_name="Helsinki-NLP/opus-mt-en-de",
-#     src_lang="en",
-#     tgt_lang="de",
-#     dataset_name="wmt14",
-#     dataset_config="de-en"
-# )
+    # ─── Decoding speed summary ────────────────────────────────────────────────
+    n = len(predictions)
+    print("\n--- Decoding Speed Summary ---")
+    print(f"Total gen time:      {gen_time:.2f} s")
+    print(f"Sentences/sec:       {n / gen_time:.2f}")
+    print(f"Tokens/sec:          {total_tokens / gen_time:.2f}")
+    print(f"Avg latency/sent:    {gen_time / n:.4f} s\n")
 
 
+if __name__ == "__main__":
+    # Example: German baseline
+    evaluate_baseline(
+        model_name="Helsinki-NLP/opus-mt-en-de",
+        src_lang="en",
+        tgt_lang="de",
+        dataset_name="wmt14",
+        dataset_config="de-en",
+        max_length=128,
+        num_samples=500
+    )
 
+    # Example: French baseline
+    # evaluate_baseline(
+    #     model_name="Helsinki-NLP/opus-mt-en-fr",
+    #     src_lang="en",
+    #     tgt_lang="fr",
+    #     dataset_name="wmt14",
+    #     dataset_config="fr-en",
+    #     max_length=128,
+    #     num_samples=10
+    # )
