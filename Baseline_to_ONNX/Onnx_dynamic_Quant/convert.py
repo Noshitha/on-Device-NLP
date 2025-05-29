@@ -2,7 +2,7 @@ import os
 import warnings
 warnings.filterwarnings('ignore')
 import sys
-sys.path.append("/home/njuttu_umass_edu/on-DeviceNLP-2/Baseline_to_ONNX") 
+sys.path.append("/home/njuttu_umass_edu/on-DeviceNLP/Baseline_to_ONNX/Onnx_dynamic_Quant") 
 import shutil
 import argparse
 from transformers import MarianMTModel, MarianTokenizer
