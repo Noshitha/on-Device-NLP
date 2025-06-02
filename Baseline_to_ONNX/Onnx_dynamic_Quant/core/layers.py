@@ -1,10 +1,12 @@
+# core/layers.py
+
 import torch
+
 """
 Minimal ONNX-ready wrappers
 Wraps encoder and decoder into torch.nn.Module classes with clear forward inputs
 Required for ONNX export
 """
-
 
 class MarianEncoder(torch.nn.Module):
     def __init__(self, encoder):
@@ -17,7 +19,6 @@ class MarianEncoder(torch.nn.Module):
             attention_mask=attention_mask,
             return_dict=False
         )
-
 
 class MarianDecoder(torch.nn.Module):
     def __init__(self, decoder):

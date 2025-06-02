@@ -1,12 +1,12 @@
+# benchmark.py
+
 import numpy as np
-
 from timeit import timeit
-
 from transformers import MarianMTModel, MarianTokenizer
-
 from core.marian import MarianOnnx
 
 NUMBER = 100
+
 """
 Performance and correctness verification
 Runs CPU and GPU benchmarks comparing ONNX vs PyTorch
@@ -28,11 +28,9 @@ def verify_export(model_path, onnx_path):
     print("Model outputs from torch and ONNX Runtime are similar.")
     print("Success.")
 
-
 def gpu_benchmark(model_path, onnx_path):
     model_ref = MarianMTModel.from_pretrained(model_path).to('cuda')
     model = MarianOnnx(onnx_path, device='cuda')
-
     tokenizer = MarianTokenizer.from_pretrained(model_path)
     input_ids = tokenizer(["Hello world !"], return_tensors="pt").to('cuda')
 
@@ -48,11 +46,9 @@ def gpu_benchmark(model_path, onnx_path):
     timer_ref = int(timeit(lambda: model_ref.generate(**input_ids), number=NUMBER) * 1000)
     print(f"{timer_ref // NUMBER} ms / sentence")
 
-
 def cpu_benchmark(model_path, onnx_path):
     model_ref = MarianMTModel.from_pretrained(model_path)
     model = MarianOnnx(onnx_path)
-
     tokenizer = MarianTokenizer.from_pretrained(model_path)
     input_ids = tokenizer(["Hello world !"], return_tensors="pt")
 
@@ -67,7 +63,6 @@ def cpu_benchmark(model_path, onnx_path):
     print("PyTorch CPU: ", end="")
     timer_ref = int(timeit(lambda: model_ref.generate(**input_ids), number=NUMBER) * 1000)
     print(f"{timer_ref // NUMBER} ms / sentence")
-
 
 if __name__ == "__main__":
     ONNX_PATH = './local_models/Helsinki-NLP_opus-mt-en-de'  # updated
