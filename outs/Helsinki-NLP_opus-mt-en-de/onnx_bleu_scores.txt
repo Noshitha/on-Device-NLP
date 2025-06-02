@@ -1,3 +1,0 @@
-BLEU Scores for en->de Translation (train set, 50 samples)
--------------------------------------------
-ONNX BLEU: 12.29
