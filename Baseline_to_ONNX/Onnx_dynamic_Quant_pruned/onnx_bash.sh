@@ -1,48 +1,63 @@
 #!/bin/bash
-#SBATCH --job-name=onnx_noquant
-#SBATCH --output=logs/log_prune_eval.out
-#SBATCH --error=logs/log_prune_eval.err
+#SBATCH --job-name=onnx_prune_both
+#SBATCH --output=logs/log_prune_both.out
+#SBATCH --error=logs/log_prune_both.err
 #SBATCH --partition=gpu    
 #SBATCH --gres=gpu:1
 #SBATCH --time=01:00:00
 #SBATCH --mem=16G
 
-# 1) activate your env
+# 1) Activate your conda/venv environment
 source /home/njuttu_umass_edu/venvs/torch_env/bin/activate
 
-# 2) go to the folder that contains convert.py, bleu_wmt.py, core/, etc.
+# 2) CD into the folder containing convert.py, prune_shared_embeddings.py, core/, etc.
 cd /home/njuttu_umass_edu/on-DeviceNLP/Baseline_to_ONNX/Onnx_dynamic_Quant_pruned
 
-# 3) make sure Python can see the 'core/' package
+# 3) Ensure Python can see the 'core/' package
 export PYTHONPATH=$(pwd):$(pwd)/..:$PYTHONPATH
 
-SRC="/home/njuttu_umass_edu/on-DeviceNLP/outs/no_quantize"
-DEST="/home/njuttu_umass_edu/on-DeviceNLP/outs/pruning"
+SRC="/home/njuttu_umass_edu/on-DeviceNLP/outs/no_quantize/Helsinki-NLP_opus-mt-fr-en"
+DEST="/home/njuttu_umass_edu/on-DeviceNLP/outs/pruning/Helsinki-NLP_opus-mt-fr-en"
 
-# create the destination directory (won't error if it already exists)
+# Copy everything from the no_quantize output into a new pruning folder
 mkdir -p "$DEST"
-
-# copy all files and subdirectories, preserving permissions/timestamps
 cp -a "$SRC/." "$DEST/"
 
-echo "=== Pruning only the decoder ==="
-python /home/njuttu_umass_edu/on-DeviceNLP/Baseline_to_ONNX/Onnx_dynamic_Quant_pruned/prune_shared_embedding.py \
-  -i /home/njuttu_umass_edu/on-DeviceNLP/outs/pruning/Helsinki-NLP_opus-mt-fr-en/decoder.onnx \
-  -o /home/njuttu_umass_edu/on-DeviceNLP/outs/pruning/Helsinki-NLP_opus-mt-fr-en/decoder.pruned.onnx \
+echo "=== Pruning the encoder ==="
+python prune_shared_embedding.py \
+  -i "$DEST/encoder.onnx" \
+  -o "$DEST/encoder.pruned.onnx" \
   -t 20000000
 
-echo "=== Swapping in pruned decoder ==="
-mv /home/njuttu_umass_edu/on-DeviceNLP/outs/pruning/Helsinki-NLP_opus-mt-fr-en/decoder.onnx \
-   /home/njuttu_umass_edu/on-DeviceNLP/outs/pruning/Helsinki-NLP_opus-mt-fr-en/decoder.orig.onnx
-mv /home/njuttu_umass_edu/on-DeviceNLP/outs/pruning/Helsinki-NLP_opus-mt-fr-en/decoder.pruned.onnx \
-   /home/njuttu_umass_edu/on-DeviceNLP/outs/pruning/Helsinki-NLP_opus-mt-fr-en/decoder.onnx
+mv "$DEST/encoder.onnx"       "$DEST/encoder.orig.onnx"
+mv "$DEST/encoder.pruned.onnx" "$DEST/encoder.onnx"
+rm  "$DEST/encoder.orig.onnx"
 
-echo "=== Sample test on Pruned decoder ==="
-python /home/njuttu_umass_edu/on-DeviceNLP-2/Baseline_to_ONNX/Onnx_dynamic_Quant/test_pruning.py
+echo
+echo "=== Directory contents after encoder pruning ==="
+ls -lh "$DEST"
+echo
 
+echo "=== Pruning the decoder ==="
+python prune_shared_embedding.py \
+  -i "$DEST/decoder.onnx" \
+  -o "$DEST/decoder.pruned.onnx" \
+  -t 20000000
 
-echo "=== BLEU on pruned decoder ==="
+mv "$DEST/decoder.onnx"       "$DEST/decoder.orig.onnx"
+mv "$DEST/decoder.pruned.onnx" "$DEST/decoder.onnx"
+rm  "$DEST/decoder.orig.onnx"
+
+echo
+echo "=== Directory contents after decoder pruning ==="
+ls -lh "$DEST"
+echo
+
+echo "=== Sample test on Pruned encoder+decoder ==="
+python test_pruning.py  # make sure this script still points to the same MODEL_DIR
+
+echo "=== BLEU on pruned encoder+decoder ==="
 python bleu_wmt.py \
-  --model-path /home/njuttu_umass_edu/on-DeviceNLP/outs/pruning/Helsinki-NLP_opus-mt-fr-en\
-  --output-dir /home/njuttu_umass_edu/on-DeviceNLP/outs/pruning/Helsinki-NLP_opus-mt-fr-en/eval_after_prune \
+  --model-path "$DEST" \
+  --output-dir "$DEST/eval_after_prune" \
   --split "validation[:100]"

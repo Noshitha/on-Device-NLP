@@ -92,15 +92,21 @@ class MarianOnnx(GenerationMixin):
     #     return last_hidden_state
     
     def _encoder_forward(self, input_ids, attention_mask):
+        # inputs = {
+        # "input_ids":      input_ids.cpu().numpy(),
+        # "attention_mask": attention_mask.cpu().numpy(),
+        # # supply the shared embedding as a graph input
+        # # "encoder.embed_tokens.weight": self.final_logits_weight.cpu().numpy(),
+        # #"encoder.embed_tokens.weight": self.final_logits_weight.detach().cpu().numpy(),
+        # }
         inputs = {
-        "input_ids":      input_ids.cpu().numpy(),
-        "attention_mask": attention_mask.cpu().numpy(),
-        # supply the shared embedding as a graph input
-        # "encoder.embed_tokens.weight": self.final_logits_weight.cpu().numpy(),
-        #"encoder.embed_tokens.weight": self.final_logits_weight.detach().cpu().numpy(),
+            "input_ids": input_ids.cpu().numpy(),
+            "attention_mask": attention_mask.cpu().numpy(),
+            # feed the pruned‐out shared embedding weight:
+            "encoder.embed_tokens.weight": self.final_logits_weight.detach().cpu().numpy(),
         }
-        out = self.encoder_session.run(None, inputs)[0]
-        return torch.from_numpy(out).to(input_ids.device)
+        last_hidden = self.encoder_session.run(None, inputs)[0]
+        return torch.from_numpy(last_hidden).to(input_ids.device)
 
 
     def _decoder_forward(self, input_ids, encoder_output, attention_mask):

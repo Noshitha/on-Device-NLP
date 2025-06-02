@@ -4,11 +4,12 @@ import torch
 from transformers import MarianTokenizer
 from core.marian import MarianOnnx
 
-# adjust this if your outs_ONNX is elsewhere
+# After pruning, all files (config.json, vocab, ONNX, etc.) should live here:
 MODEL_DIR = os.path.abspath(
     os.path.join(os.path.dirname(__file__),
-                 "..", "outs_ONNX", "Helsinki-NLP_opus-mt-fr-en")
+                 "..", "outs", "pruning", "Helsinki-NLP_opus-mt-fr-en")
 )
+
 print(f"Loading tokenizer from {MODEL_DIR}")
 tokenizer = MarianTokenizer.from_pretrained(
     MODEL_DIR,
