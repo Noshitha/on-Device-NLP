@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=onnx_vocabred
-#SBATCH --output=/home/njuttu_umass_edu/on-DeviceNLP-2/VocabRed_to_ONNX/logs/log_vocabred.out
-#SBATCH --error=/home/njuttu_umass_edu/on-DeviceNLP-2/VocabRed_to_ONNX/logs/log_vocabred.err
+#SBATCH --output=/home/njuttu_umass_edu/on-DeviceNLP/VocabRed_to_ONNX/logs/log_vocabred.out
+#SBATCH --error=/home/njuttu_umass_edu/on-DeviceNLP/VocabRed_to_ONNX/logs/log_vocabred.err
 #SBATCH --partition=gpu    
 #SBATCH --gres=gpu:1
 #SBATCH --time=01:00:00
