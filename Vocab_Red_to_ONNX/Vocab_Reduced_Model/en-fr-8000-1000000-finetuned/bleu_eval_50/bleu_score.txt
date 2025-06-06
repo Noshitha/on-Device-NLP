@@ -1,2 +1,0 @@
-BLEU Score (validation[:50]): 19.90
-Details: BLEU = 19.90 42.9/24.5/15.5/9.6 (BP = 1.000 ratio = 1.401 hyp_len = 1472 ref_len = 1051)

@@ -1,0 +1,16 @@
+=== Pruning only the decoder ===
+Found 1 large initializers in /home/njuttu_umass_edu/on-DeviceNLP/outs/pruning/Helsinki-NLP_opus-mt-fr-en/decoder.onnx:
+  decoder.embed_tokens.weight: 30471168 elements
+Pruned model saved to /home/njuttu_umass_edu/on-DeviceNLP/outs/pruning/Helsinki-NLP_opus-mt-fr-en/decoder.pruned.onnx.
+
+=== Swapping in pruned decoder ===
+=== Sample test on Pruned decoder ===
+Loading tokenizer from /home/njuttu_umass_edu/on-DeviceNLP-2/Baseline_to_ONNX/outs_ONNX/Helsinki-NLP_opus-mt-fr-en
+Loading pruned ONNX model…
+Generating…
+=== BLEU on pruned decoder ===
+Loading ONNX model from /home/njuttu_umass_edu/on-DeviceNLP/outs/pruning/Helsinki-NLP_opus-mt-fr-en
+Loading tokenizer…
+Loading WMT14 dataset…
+
+The BLEU Score (ONNX, validation[:100]): 52.75
