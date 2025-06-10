@@ -1,103 +1,125 @@
+# core/marian_coreml.py
+import coremltools as ct
+import numpy as np
+import json
 import os
 import torch
-import torch.nn.functional as F
-import coremltools as ct
-from transformers import MarianConfig
-
-class CustomLogitsProcessor:
-    def __init__(self, min_length: int, eos_token_id: int, pad_token_id: int):
-        self.min_length = min_length
-        self.eos_token_id = eos_token_id
-        self.pad_token_id = pad_token_id
-
-    def __call__(self, input_ids: torch.LongTensor, scores: torch.FloatTensor) -> torch.FloatTensor:
-        cur_len = input_ids.shape[-1]
-        if cur_len < self.min_length:
-            scores[:, self.eos_token_id] = -float("inf")
-
-        scores[:, self.pad_token_id] = -float("inf")
-        return scores
+from pathlib import Path
 
 class MarianCoreML:
-    def __init__(self, path: str, device: str = 'cpu'):
-        self.device = torch.device(device)
+    def __init__(self, model_dir):
+        """Initialize the Marian Core ML model with separate encoder/decoder"""
+        self.model_dir = Path(model_dir)
 
-        self.encoder_model = ct.models.MLModel(os.path.join(path, "encoder.mlpackage"))
-        self.decoder_model = ct.models.MLModel(os.path.join(path, "decoder.mlpackage"))
+        # Load Core ML models
+        print("Loading Core ML models...")
+        self.encoder = ct.models.MLModel(str(self.model_dir / "encoder.mlpackage"))
+        self.decoder = ct.models.MLModel(str(self.model_dir / "decoder.mlpackage"))
 
-        self.config = MarianConfig.from_pretrained(path)
-        self.final_logits_weight = torch.load(os.path.join(path, 'lm_weight.bin')).to(self.device)
-        self.final_logits_bias = torch.load(os.path.join(path, 'lm_bias.bin')).to(self.device)
+        # Determine the fixed sequence lengths expected by each .mlpackage
+        enc_spec = self.encoder.get_spec()
+        self.encoder_seq_len = list(enc_spec.description.input[0]
+                                    .type.multiArrayType.shape)[1]
+        dec_spec = self.decoder.get_spec()
+        self.decoder_seq_len = list(dec_spec.description.input[0]
+                                    .type.multiArrayType.shape)[1]
 
-        self.logits_processor = CustomLogitsProcessor(
-            2, self.config.eos_token_id, self.config.pad_token_id
+        # Load configuration
+        with open(self.model_dir / "config.json", 'r') as f:
+            self.config = json.load(f)
+
+        # Load final projection weights (detach so .numpy() works)
+        print("Loading projection weights...")
+        lm_weight = (torch.load(self.model_dir / "lm_weight.bin", map_location='cpu')
+                        .detach()
+                        .cpu()
+                        .numpy())
+        lm_bias = (torch.load(self.model_dir / "lm_bias.bin", map_location='cpu')
+                        .detach()
+                        .cpu()
+                        .numpy())
+
+        self.lm_weight = lm_weight  # shape: (vocab, hidden)
+        self.lm_bias   = lm_bias    # shape: (1, vocab)
+
+        # Model parameters
+        self.pad_token_id          = self.config['pad_token_id']
+        self.eos_token_id          = self.config['eos_token_id']
+        self.decoder_start_token_id= self.config['decoder_start_token_id']
+
+        print(f"Encoder fixed seq‐len: {self.encoder_seq_len}")
+        print(f"Decoder fixed seq‐len: {self.decoder_seq_len}")
+        print(f"Vocab size: {self.config['vocab_size']}")
+        print(f"Hidden size: {self.config['d_model']}")
+
+    def _pad_truncate(self, array: np.ndarray, target_len: int, pad_val: float):
+        """Pad or truncate a (1, N) array to (1, target_len)."""
+        n = array.shape[1]
+        if n >= target_len:
+            return array[:, :target_len]
+        pad = np.full((1, target_len - n), pad_val, dtype=array.dtype)
+        return np.concatenate([array, pad], axis=1)
+
+    def encode(self, input_ids, attention_mask=None):
+        # to numpy float32
+        if torch.is_tensor(input_ids):
+            input_ids = input_ids.numpy().astype(np.float32)
+        if torch.is_tensor(attention_mask):
+            attention_mask = attention_mask.numpy().astype(np.float32)
+
+        # pad/truncate to fixed encoder length
+        input_ids     = self._pad_truncate(input_ids,     self.encoder_seq_len, self.pad_token_id)
+        attention_mask= self._pad_truncate(attention_mask,self.encoder_seq_len, 0.0)
+
+        encoder_inputs = {
+            'input_ids':      input_ids,
+            'attention_mask': attention_mask
+        }
+        encoder_output = self.encoder.predict(encoder_inputs)
+
+        # find the hidden‐states tensor
+        for v in encoder_output.values():
+            if v.ndim == 3 and v.shape[-1] == self.config['d_model']:
+                return v, attention_mask
+        raise RuntimeError("Failed to fetch encoder hidden states")
+
+    def generate(self, input_ids, attention_mask=None, max_length=50):
+        # 1) encode
+        encoder_hidden, encoder_mask = self.encode(input_ids, attention_mask)
+        batch_size = encoder_hidden.shape[0]
+
+        # 2) initialize decoder_input to full‐length pad + start token
+        decoder_input = np.full(
+            (batch_size, self.decoder_seq_len),
+            self.pad_token_id,
+            dtype=np.float32
         )
+        decoder_input[:, 0] = self.decoder_start_token_id
+        generated = [self.decoder_start_token_id]
 
-    def _encoder_forward(self, input_ids, attention_mask):
-        inputs = {
-            "input_ids": input_ids.numpy(),
-            "attention_mask": attention_mask.numpy()
-        }
-        output = self.encoder_model.predict(inputs)["encoder_hidden_states"]
-        return torch.from_numpy(output).to(input_ids.device)
+        # 3) iterative decoding
+        for _ in range(max_length):
+            # call CoreML decoder
+            out = self.decoder.predict({
+                'input_ids':           decoder_input,
+                'encoder_hidden_states': encoder_hidden,
+                'attention_mask':      encoder_mask
+            })
+            # extract hidden‐states tensor
+            hidden = next(v for v in out.values() if v.ndim == 3 and v.shape[-1] == self.config['d_model'])
+            #last_hidden = hidden[0, -1, :]
+            idx = len(generated) - 1
+            last_hidden = hidden[0, idx, :]
 
-    def _decoder_forward(self, input_ids, encoder_hidden_states, attention_mask):
-        inputs = {
-            "input_ids": input_ids.numpy(),
-            "encoder_hidden_states": encoder_hidden_states.numpy(),
-            "attention_mask": attention_mask.numpy()
-        }
-        output = self.decoder_model.predict(inputs)["decoder_output"]
-        decoder_output = torch.from_numpy(output).to(input_ids.device)
-
-        lm_logits = F.linear(decoder_output, self.final_logits_weight, bias=self.final_logits_bias)
-        return lm_logits
-
-    def _init_sequence_length_for_generation(self, input_ids, max_length: int):
-        unfinished_sequences = torch.ones(input_ids.shape[0], dtype=torch.int8, device=input_ids.device)
-        sequence_lengths = torch.ones(input_ids.shape[0], dtype=torch.int8, device=input_ids.device) * max_length
-        cur_len = input_ids.shape[-1]
-        return sequence_lengths, unfinished_sequences, cur_len
-
-    def greedy_search(self, input_ids, encoder_output, attention_mask):
-        max_length = self.config.max_length
-        pad_token_id = self.config.pad_token_id
-        eos_token_id = self.config.eos_token_id
-
-        sequence_lengths, unfinished_sequences, cur_len = \
-            self._init_sequence_length_for_generation(input_ids, max_length)
-
-        while cur_len < max_length:
-            logits = self._decoder_forward(input_ids, encoder_output, attention_mask)
-            next_token_logits = logits[:, -1, :]
-
-            scores = self.logits_processor(input_ids, next_token_logits)
-
-            next_tokens = torch.argmax(scores, dim=-1)
-            next_tokens = next_tokens * unfinished_sequences + (pad_token_id) * (1 - unfinished_sequences)
-
-            input_ids = torch.cat([input_ids, next_tokens[:, None]], dim=-1)
-            input_ids[input_ids[:, -2] == eos_token_id, -1] = eos_token_id
-            unfinished_sequences = unfinished_sequences.mul((next_tokens != eos_token_id).char())
-
-            if unfinished_sequences.max() == 0:
+            # logits & next token
+            logits = self.lm_weight.dot(last_hidden) + self.lm_bias.ravel()
+            nxt = int(np.argmax(logits))
+            if nxt == self.eos_token_id:
                 break
+            generated.append(nxt)
 
-            cur_len += 1
+            # build next decoder_input: pad/truncate generated list
+            arr = np.array([generated], dtype=np.float32)
+            decoder_input = self._pad_truncate(arr, self.decoder_seq_len, self.pad_token_id)
 
-        return input_ids
-
-    def _prepare_decoder_input_ids_for_generation(self, input_ids, decoder_start_token_id: int):
-        decoder_input_ids = (
-            torch.ones((input_ids.shape[0], 1), dtype=torch.int64, device=input_ids.device)
-            * decoder_start_token_id
-        )
-        return decoder_input_ids
-
-    def generate(self, input_ids, attention_mask):
-        decoder_start_token_id = self.config.decoder_start_token_id
-        encoder_output = self._encoder_forward(input_ids, attention_mask)
-        input_ids = self._prepare_decoder_input_ids_for_generation(
-            input_ids, decoder_start_token_id
-        )
-        return self.greedy_search(input_ids, encoder_output, attention_mask)
+        return np.array([generated])

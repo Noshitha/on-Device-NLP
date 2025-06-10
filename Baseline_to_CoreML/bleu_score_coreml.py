@@ -1,53 +1,47 @@
-import os
+# bleu_score_coreml.py
+import argparse
 from transformers import MarianTokenizer
-from datasets import load_dataset
-from sacrebleu import corpus_bleu
-from tqdm import tqdm
-import sys
-
-# Add your CoreML inference module to the path
-sys.path.append("/home/njuttu_umass_edu/on-DeviceNLP-2/Baseline_to_CoreML")
 from core.marian_coreml import MarianCoreML
+import sacrebleu
 
-# Configuration
-MODEL_PATH = "/home/njuttu_umass_edu/on-DeviceNLP-2/outs_coreml/Helsinki-NLP_opus-mt-en-de"  # CoreML model output folder
-SRC_LANG = "en"
-TGT_LANG = "de"
-MAX_LEN = 128
-SPLIT = "validation[:50]"
+def load_lines(path):
+    with open(path, encoding="utf-8") as f:
+        return [l.strip() for l in f if l.strip()]
 
-def evaluate_bleu(model, tokenizer, dataset):
-    references = []
-    hypotheses = []
+def evaluate_bleu(model_dir: str, src_path: str, ref_path: str):
+    """
+    Read source and reference files line-by-line, generate translations
+    via CoreML, then compute corpus BLEU.
+    """
+    print(f"\nLoading model and tokenizer from '{model_dir}'")
+    tokenizer = MarianTokenizer.from_pretrained(model_dir)
+    model     = MarianCoreML(model_dir)
 
-    for ex in tqdm(dataset, desc="Evaluating"):
-        src_text = ex["translation"][SRC_LANG]
-        tgt_text = ex["translation"][TGT_LANG]
+    print(f"Reading {src_path} and {ref_path} …")
+    sources   = load_lines(src_path)
+    references= load_lines(ref_path)
 
-        references.append(tgt_text)
+    assert len(sources) == len(references), "Source and reference must have same line count."
 
-        inputs = tokenizer(src_text, return_tensors="pt", truncation=True, padding=True, max_length=MAX_LEN)
-        input_ids = inputs["input_ids"]
-        attention_mask = inputs["attention_mask"]
+    predictions = []
+    for src in sources:
+        inputs = tokenizer(src, return_tensors="pt")
+        out_ids = model.generate(inputs["input_ids"], inputs["attention_mask"], max_length=100)
+        pred   = tokenizer.batch_decode(out_ids, skip_special_tokens=True)[0]
+        predictions.append(pred)
 
-        output_ids = model.generate(input_ids=input_ids, attention_mask=attention_mask)
-        prediction = tokenizer.decode(output_ids[0], skip_special_tokens=True)
-
-        hypotheses.append(prediction)
-
-    bleu = corpus_bleu(hypotheses, [references])
-    return bleu.score
-
-def main():
-    print(f"Loading CoreML model from {MODEL_PATH}")
-    model = MarianCoreML(MODEL_PATH) 
-    tokenizer = MarianTokenizer.from_pretrained(MODEL_PATH)
-
-    print(f"Loading WMT dataset...")
-    dataset = load_dataset("wmt14", f"{TGT_LANG}-{SRC_LANG}", split=SPLIT)
-
-    bleu_score = evaluate_bleu(model, tokenizer, dataset)
-    print(f"\nThe BLEU Score (CoreML, {SPLIT}): {bleu_score:.2f}")
+    # sacrebleu expects list of reference‐lists
+    score = sacrebleu.corpus_bleu(predictions, [references])
+    print("\n" + "="*40)
+    print(f"Corpus BLEU = {score.score:.2f}")
+    print("="*40)
 
 if __name__ == "__main__":
-    main()
+    p = argparse.ArgumentParser(
+        description="Evaluate BLEU of CoreML‐generated translations (macOS only)."
+    )
+    p.add_argument("model_dir", help="Path to your CoreML output folder")
+    p.add_argument("src",       help="Plain‐text file of source sentences, one per line")
+    p.add_argument("ref",       help="Plain‐text file of reference translations, one per line")
+    args = p.parse_args()
+    evaluate_bleu(args.model_dir, args.src, args.ref)

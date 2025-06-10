@@ -6,6 +6,7 @@ from transformers import MarianMTModel, MarianTokenizer
 from core.layers import MarianDecoder, MarianEncoder
 
 def create_marian_encoder_decoder(model_path: str, outdir: str):
+    """Create separate encoder and decoder models and save weights"""
     model = MarianMTModel.from_pretrained(model_path)
 
     encoder = model.get_encoder()
@@ -14,9 +15,11 @@ def create_marian_encoder_decoder(model_path: str, outdir: str):
     marian_encoder = MarianEncoder(encoder).eval()
     marian_decoder = MarianDecoder(decoder).eval()
 
+    # Save final projection weights
     torch.save(model.model.shared.weight, os.path.join(outdir, 'lm_weight.bin'))
     torch.save(model.final_logits_bias, os.path.join(outdir, 'lm_bias.bin'))
 
+    # Copy necessary files
     for file in ['config.json', 'source.spm', 'target.spm', 'tokenizer_config.json', 'vocab.json']:
         src = os.path.join(model_path, file)
         dst = os.path.join(outdir, file)
@@ -26,6 +29,7 @@ def create_marian_encoder_decoder(model_path: str, outdir: str):
     return marian_encoder, marian_decoder
 
 def generate_coreml_graph(model_path, encoder_path, decoder_path, outdir):
+    """Generate CoreML models for encoder and decoder"""
     encoder, decoder = create_marian_encoder_decoder(model_path, outdir)
 
     tokenizer = MarianTokenizer.from_pretrained(model_path)
@@ -34,32 +38,26 @@ def generate_coreml_graph(model_path, encoder_path, decoder_path, outdir):
 
     print("Exporting encoder to CoreML...")
     traced_encoder = torch.jit.trace(encoder, (input_ids, attention_mask))
-    # mlmodel_encoder = ct.convert(
-    #     traced_encoder,
-    #     inputs=[
-    #         ct.TensorType(name="input_ids", shape=input_ids.shape),
-    #         ct.TensorType(name="attention_mask", shape=attention_mask.shape)
-    #     ]
-    # )
-    # mlmodel_encoder.save(encoder_path)
-
+    
     mlmodel_encoder = ct.convert(
-    traced_encoder,
-    convert_to="neuralnetwork",  
-    minimum_deployment_target=ct.target.iOS13,
-    inputs=[
-        ct.TensorType(name="input_ids", shape=input_ids.shape),
-        ct.TensorType(name="attention_mask", shape=attention_mask.shape)
-    ]
+        traced_encoder,
+        convert_to="neuralnetwork",  
+        minimum_deployment_target=ct.target.iOS13,
+        inputs=[
+            ct.TensorType(name="input_ids", shape=input_ids.shape),
+            ct.TensorType(name="attention_mask", shape=attention_mask.shape)
+        ]
     )
-    mlmodel_encoder.save(encoder_path)  # .mlmodel
-
+    mlmodel_encoder.save(encoder_path)  # .mlpackage
 
     print("Exporting decoder to CoreML...")
     encoder_hidden_states = encoder(input_ids, attention_mask)[0]
     traced_decoder = torch.jit.trace(decoder, (input_ids, encoder_hidden_states, attention_mask))
+    
     mlmodel_decoder = ct.convert(
         traced_decoder,
+        convert_to="neuralnetwork",
+        minimum_deployment_target=ct.target.iOS13,
         inputs=[
             ct.TensorType(name="input_ids", shape=input_ids.shape),
             ct.TensorType(name="encoder_hidden_states", shape=encoder_hidden_states.shape),
@@ -67,3 +65,7 @@ def generate_coreml_graph(model_path, encoder_path, decoder_path, outdir):
         ]
     )
     mlmodel_decoder.save(decoder_path)
+    
+    print(f"Encoder saved to: {encoder_path}")
+    print(f"Decoder saved to: {decoder_path}")
+    print(f"Weights saved to: {outdir}/lm_weight.bin and {outdir}/lm_bias.bin")
