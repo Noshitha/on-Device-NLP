@@ -1,0 +1,14 @@
+=== Sample test on Pruned encoder+decoder ===
+Loading tokenizer from /home/njuttu_umass_edu/on-DeviceNLP/outs/Vocab_Red_NoQuant/checkpoint-4924000_pruned…
+Loading pruned ONNX model…
+Using max_length = 50
+Tokenizing : ['Le chat noir est sur le tapis .']
+Generating…
+Decoded : The black cat is on the carpet .
+=== All metrics Evaluation ===
+
+=== Metrics over 100 sentences ===
+BLEU    = 14.54
+ChrF    = 61.83
+TER     = 18.75
+METEOR  = 0.7151

@@ -1,0 +1,14 @@
+=== Sample test on vocab-reduced model ===
+Loading vocab-reduced model for sample test...
+Tokenizing: ['Le chat noir est sur le tapis .']
+Generating...
+Decoded : The black cat is on the carpet .
+
+=== All metrics Evaluation ===
+
+Loading model for metrics evaluation...
+=== Metrics over 100 sentences ===
+BLEU    = 75.06
+ChrF    = 96.03
+TER     = 0.00
+METEOR  = 0.7401

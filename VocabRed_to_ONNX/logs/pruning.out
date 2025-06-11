@@ -1,0 +1,267 @@
+Copying original folder to pruned folder:
+Listing initializers in encoder.onnx:
+Initializers in /home/njuttu_umass_edu/on-DeviceNLP/outs/Vocab_Red_NoQuant/checkpoint-4924000_pruned/encoder.onnx:
+  • encoder.embed_tokens.weight               [8001, 384]  →  3,072,384 elements
+  • onnx::MatMul_1724                         [384, 768]  →  294,912 elements
+  • onnx::MatMul_1725                         [768, 384]  →  294,912 elements
+  • onnx::MatMul_1748                         [384, 768]  →  294,912 elements
+  • onnx::MatMul_1749                         [768, 384]  →  294,912 elements
+  • onnx::MatMul_1772                         [384, 768]  →  294,912 elements
+  • onnx::MatMul_1773                         [768, 384]  →  294,912 elements
+  • onnx::MatMul_1796                         [384, 768]  →  294,912 elements
+  • onnx::MatMul_1797                         [768, 384]  →  294,912 elements
+  • onnx::MatMul_1820                         [384, 768]  →  294,912 elements
+  • onnx::MatMul_1821                         [768, 384]  →  294,912 elements
+  • onnx::MatMul_1844                         [384, 768]  →  294,912 elements
+  • onnx::MatMul_1845                         [768, 384]  →  294,912 elements
+  • onnx::MatMul_1868                         [384, 768]  →  294,912 elements
+  • onnx::MatMul_1869                         [768, 384]  →  294,912 elements
+  • onnx::MatMul_1892                         [384, 768]  →  294,912 elements
+  • onnx::MatMul_1893                         [768, 384]  →  294,912 elements
+  • onnx::MatMul_1916                         [384, 768]  →  294,912 elements
+  • onnx::MatMul_1917                         [768, 384]  →  294,912 elements
+  • onnx::MatMul_1940                         [384, 768]  →  294,912 elements
+  • onnx::MatMul_1941                         [768, 384]  →  294,912 elements
+  • onnx::MatMul_1964                         [384, 768]  →  294,912 elements
+  • onnx::MatMul_1965                         [768, 384]  →  294,912 elements
+  • onnx::MatMul_1988                         [384, 768]  →  294,912 elements
+  • onnx::MatMul_1989                         [768, 384]  →  294,912 elements
+  • encoder.embed_positions.weight            [512, 384]  →  196,608 elements
+  • onnx::MatMul_1702                         [384, 384]  →  147,456 elements
+  • onnx::MatMul_1703                         [384, 384]  →  147,456 elements
+  • onnx::MatMul_1710                         [384, 384]  →  147,456 elements
+  • onnx::MatMul_1723                         [384, 384]  →  147,456 elements
+  • onnx::MatMul_1726                         [384, 384]  →  147,456 elements
+  • onnx::MatMul_1727                         [384, 384]  →  147,456 elements
+  • onnx::MatMul_1734                         [384, 384]  →  147,456 elements
+  • onnx::MatMul_1747                         [384, 384]  →  147,456 elements
+  • onnx::MatMul_1750                         [384, 384]  →  147,456 elements
+  • onnx::MatMul_1751                         [384, 384]  →  147,456 elements
+  • onnx::MatMul_1758                         [384, 384]  →  147,456 elements
+  • onnx::MatMul_1771                         [384, 384]  →  147,456 elements
+  • onnx::MatMul_1774                         [384, 384]  →  147,456 elements
+  • onnx::MatMul_1775                         [384, 384]  →  147,456 elements
+  • onnx::MatMul_1782                         [384, 384]  →  147,456 elements
+  • onnx::MatMul_1795                         [384, 384]  →  147,456 elements
+  • onnx::MatMul_1798                         [384, 384]  →  147,456 elements
+  • onnx::MatMul_1799                         [384, 384]  →  147,456 elements
+  • onnx::MatMul_1806                         [384, 384]  →  147,456 elements
+  • onnx::MatMul_1819                         [384, 384]  →  147,456 elements
+  • onnx::MatMul_1822                         [384, 384]  →  147,456 elements
+  • onnx::MatMul_1823                         [384, 384]  →  147,456 elements
+  • onnx::MatMul_1830                         [384, 384]  →  147,456 elements
+  • onnx::MatMul_1843                         [384, 384]  →  147,456 elements
+  • onnx::MatMul_1846                         [384, 384]  →  147,456 elements
+  • onnx::MatMul_1847                         [384, 384]  →  147,456 elements
+  • onnx::MatMul_1854                         [384, 384]  →  147,456 elements
+  • onnx::MatMul_1867                         [384, 384]  →  147,456 elements
+  • onnx::MatMul_1870                         [384, 384]  →  147,456 elements
+  • onnx::MatMul_1871                         [384, 384]  →  147,456 elements
+  • onnx::MatMul_1878                         [384, 384]  →  147,456 elements
+  • onnx::MatMul_1891                         [384, 384]  →  147,456 elements
+  • onnx::MatMul_1894                         [384, 384]  →  147,456 elements
+  • onnx::MatMul_1895                         [384, 384]  →  147,456 elements
+  • onnx::MatMul_1902                         [384, 384]  →  147,456 elements
+  • onnx::MatMul_1915                         [384, 384]  →  147,456 elements
+  • onnx::MatMul_1918                         [384, 384]  →  147,456 elements
+  • onnx::MatMul_1919                         [384, 384]  →  147,456 elements
+  • onnx::MatMul_1926                         [384, 384]  →  147,456 elements
+  • onnx::MatMul_1939                         [384, 384]  →  147,456 elements
+  • onnx::MatMul_1942                         [384, 384]  →  147,456 elements
+  • onnx::MatMul_1943                         [384, 384]  →  147,456 elements
+  • onnx::MatMul_1950                         [384, 384]  →  147,456 elements
+  • onnx::MatMul_1963                         [384, 384]  →  147,456 elements
+  • onnx::MatMul_1966                         [384, 384]  →  147,456 elements
+  • onnx::MatMul_1967                         [384, 384]  →  147,456 elements
+  • onnx::MatMul_1974                         [384, 384]  →  147,456 elements
+  • onnx::MatMul_1987                         [384, 384]  →  147,456 elements
+  • encoder.layers.0.fc1.bias                 [768]  →  768 elements
+  • encoder.layers.1.fc1.bias                 [768]  →  768 elements
+  • encoder.layers.2.fc1.bias                 [768]  →  768 elements
+  • encoder.layers.3.fc1.bias                 [768]  →  768 elements
+  • encoder.layers.4.fc1.bias                 [768]  →  768 elements
+  • encoder.layers.5.fc1.bias                 [768]  →  768 elements
+  • encoder.layers.6.fc1.bias                 [768]  →  768 elements
+  • encoder.layers.7.fc1.bias                 [768]  →  768 elements
+  • encoder.layers.8.fc1.bias                 [768]  →  768 elements
+  • encoder.layers.9.fc1.bias                 [768]  →  768 elements
+  • encoder.layers.10.fc1.bias                [768]  →  768 elements
+  • encoder.layers.11.fc1.bias                [768]  →  768 elements
+  • encoder.layers.0.self_attn.k_proj.bias    [384]  →  384 elements
+  • encoder.layers.0.self_attn.v_proj.bias    [384]  →  384 elements
+  • encoder.layers.0.self_attn.q_proj.bias    [384]  →  384 elements
+  • encoder.layers.0.self_attn.out_proj.bias  [384]  →  384 elements
+  • encoder.layers.0.self_attn_layer_norm.weight  [384]  →  384 elements
+  • encoder.layers.0.self_attn_layer_norm.bias  [384]  →  384 elements
+  • encoder.layers.0.fc2.bias                 [384]  →  384 elements
+  • encoder.layers.0.final_layer_norm.weight  [384]  →  384 elements
+  • encoder.layers.0.final_layer_norm.bias    [384]  →  384 elements
+  • encoder.layers.1.self_attn.k_proj.bias    [384]  →  384 elements
+  • encoder.layers.1.self_attn.v_proj.bias    [384]  →  384 elements
+  • encoder.layers.1.self_attn.q_proj.bias    [384]  →  384 elements
+  • encoder.layers.1.self_attn.out_proj.bias  [384]  →  384 elements
+  • encoder.layers.1.self_attn_layer_norm.weight  [384]  →  384 elements
+  • encoder.layers.1.self_attn_layer_norm.bias  [384]  →  384 elements
+  • encoder.layers.1.fc2.bias                 [384]  →  384 elements
+  • encoder.layers.1.final_layer_norm.weight  [384]  →  384 elements
+  • encoder.layers.1.final_layer_norm.bias    [384]  →  384 elements
+  • encoder.layers.2.self_attn.k_proj.bias    [384]  →  384 elements
+  • encoder.layers.2.self_attn.v_proj.bias    [384]  →  384 elements
+  • encoder.layers.2.self_attn.q_proj.bias    [384]  →  384 elements
+  • encoder.layers.2.self_attn.out_proj.bias  [384]  →  384 elements
+  • encoder.layers.2.self_attn_layer_norm.weight  [384]  →  384 elements
+  • encoder.layers.2.self_attn_layer_norm.bias  [384]  →  384 elements
+  • encoder.layers.2.fc2.bias                 [384]  →  384 elements
+  • encoder.layers.2.final_layer_norm.weight  [384]  →  384 elements
+  • encoder.layers.2.final_layer_norm.bias    [384]  →  384 elements
+  • encoder.layers.3.self_attn.k_proj.bias    [384]  →  384 elements
+  • encoder.layers.3.self_attn.v_proj.bias    [384]  →  384 elements
+  • encoder.layers.3.self_attn.q_proj.bias    [384]  →  384 elements
+  • encoder.layers.3.self_attn.out_proj.bias  [384]  →  384 elements
+  • encoder.layers.3.self_attn_layer_norm.weight  [384]  →  384 elements
+  • encoder.layers.3.self_attn_layer_norm.bias  [384]  →  384 elements
+  • encoder.layers.3.fc2.bias                 [384]  →  384 elements
+  • encoder.layers.3.final_layer_norm.weight  [384]  →  384 elements
+  • encoder.layers.3.final_layer_norm.bias    [384]  →  384 elements
+  • encoder.layers.4.self_attn.k_proj.bias    [384]  →  384 elements
+  • encoder.layers.4.self_attn.v_proj.bias    [384]  →  384 elements
+  • encoder.layers.4.self_attn.q_proj.bias    [384]  →  384 elements
+  • encoder.layers.4.self_attn.out_proj.bias  [384]  →  384 elements
+  • encoder.layers.4.self_attn_layer_norm.weight  [384]  →  384 elements
+  • encoder.layers.4.self_attn_layer_norm.bias  [384]  →  384 elements
+  • encoder.layers.4.fc2.bias                 [384]  →  384 elements
+  • encoder.layers.4.final_layer_norm.weight  [384]  →  384 elements
+  • encoder.layers.4.final_layer_norm.bias    [384]  →  384 elements
+  • encoder.layers.5.self_attn.k_proj.bias    [384]  →  384 elements
+  • encoder.layers.5.self_attn.v_proj.bias    [384]  →  384 elements
+  • encoder.layers.5.self_attn.q_proj.bias    [384]  →  384 elements
+  • encoder.layers.5.self_attn.out_proj.bias  [384]  →  384 elements
+  • encoder.layers.5.self_attn_layer_norm.weight  [384]  →  384 elements
+  • encoder.layers.5.self_attn_layer_norm.bias  [384]  →  384 elements
+  • encoder.layers.5.fc2.bias                 [384]  →  384 elements
+  • encoder.layers.5.final_layer_norm.weight  [384]  →  384 elements
+  • encoder.layers.5.final_layer_norm.bias    [384]  →  384 elements
+  • encoder.layers.6.self_attn.k_proj.bias    [384]  →  384 elements
+  • encoder.layers.6.self_attn.v_proj.bias    [384]  →  384 elements
+  • encoder.layers.6.self_attn.q_proj.bias    [384]  →  384 elements
+  • encoder.layers.6.self_attn.out_proj.bias  [384]  →  384 elements
+  • encoder.layers.6.self_attn_layer_norm.weight  [384]  →  384 elements
+  • encoder.layers.6.self_attn_layer_norm.bias  [384]  →  384 elements
+  • encoder.layers.6.fc2.bias                 [384]  →  384 elements
+  • encoder.layers.6.final_layer_norm.weight  [384]  →  384 elements
+  • encoder.layers.6.final_layer_norm.bias    [384]  →  384 elements
+  • encoder.layers.7.self_attn.k_proj.bias    [384]  →  384 elements
+  • encoder.layers.7.self_attn.v_proj.bias    [384]  →  384 elements
+  • encoder.layers.7.self_attn.q_proj.bias    [384]  →  384 elements
+  • encoder.layers.7.self_attn.out_proj.bias  [384]  →  384 elements
+  • encoder.layers.7.self_attn_layer_norm.weight  [384]  →  384 elements
+  • encoder.layers.7.self_attn_layer_norm.bias  [384]  →  384 elements
+  • encoder.layers.7.fc2.bias                 [384]  →  384 elements
+  • encoder.layers.7.final_layer_norm.weight  [384]  →  384 elements
+  • encoder.layers.7.final_layer_norm.bias    [384]  →  384 elements
+  • encoder.layers.8.self_attn.k_proj.bias    [384]  →  384 elements
+  • encoder.layers.8.self_attn.v_proj.bias    [384]  →  384 elements
+  • encoder.layers.8.self_attn.q_proj.bias    [384]  →  384 elements
+  • encoder.layers.8.self_attn.out_proj.bias  [384]  →  384 elements
+  • encoder.layers.8.self_attn_layer_norm.weight  [384]  →  384 elements
+  • encoder.layers.8.self_attn_layer_norm.bias  [384]  →  384 elements
+  • encoder.layers.8.fc2.bias                 [384]  →  384 elements
+  • encoder.layers.8.final_layer_norm.weight  [384]  →  384 elements
+  • encoder.layers.8.final_layer_norm.bias    [384]  →  384 elements
+  • encoder.layers.9.self_attn.k_proj.bias    [384]  →  384 elements
+  • encoder.layers.9.self_attn.v_proj.bias    [384]  →  384 elements
+  • encoder.layers.9.self_attn.q_proj.bias    [384]  →  384 elements
+  • encoder.layers.9.self_attn.out_proj.bias  [384]  →  384 elements
+  • encoder.layers.9.self_attn_layer_norm.weight  [384]  →  384 elements
+  • encoder.layers.9.self_attn_layer_norm.bias  [384]  →  384 elements
+  • encoder.layers.9.fc2.bias                 [384]  →  384 elements
+  • encoder.layers.9.final_layer_norm.weight  [384]  →  384 elements
+  • encoder.layers.9.final_layer_norm.bias    [384]  →  384 elements
+  • encoder.layers.10.self_attn.k_proj.bias   [384]  →  384 elements
+  • encoder.layers.10.self_attn.v_proj.bias   [384]  →  384 elements
+  • encoder.layers.10.self_attn.q_proj.bias   [384]  →  384 elements
+  • encoder.layers.10.self_attn.out_proj.bias  [384]  →  384 elements
+  • encoder.layers.10.self_attn_layer_norm.weight  [384]  →  384 elements
+  • encoder.layers.10.self_attn_layer_norm.bias  [384]  →  384 elements
+  • encoder.layers.10.fc2.bias                [384]  →  384 elements
+  • encoder.layers.10.final_layer_norm.weight  [384]  →  384 elements
+  • encoder.layers.10.final_layer_norm.bias   [384]  →  384 elements
+  • encoder.layers.11.self_attn.k_proj.bias   [384]  →  384 elements
+  • encoder.layers.11.self_attn.v_proj.bias   [384]  →  384 elements
+  • encoder.layers.11.self_attn.q_proj.bias   [384]  →  384 elements
+  • encoder.layers.11.self_attn.out_proj.bias  [384]  →  384 elements
+  • encoder.layers.11.self_attn_layer_norm.weight  [384]  →  384 elements
+  • encoder.layers.11.self_attn_layer_norm.bias  [384]  →  384 elements
+  • encoder.layers.11.fc2.bias                [384]  →  384 elements
+  • encoder.layers.11.final_layer_norm.weight  [384]  →  384 elements
+  • encoder.layers.11.final_layer_norm.bias   [384]  →  384 elements
+
+Pruning encoder.onnx (encoder.embed_tokens.weight) ...
+Stripping ['encoder.embed_tokens.weight'] from /home/njuttu_umass_edu/on-DeviceNLP/outs/Vocab_Red_NoQuant/checkpoint-4924000_pruned/encoder.onnx
+Pruned model saved to /home/njuttu_umass_edu/on-DeviceNLP/outs/Vocab_Red_NoQuant/checkpoint-4924000_pruned/encoder_pruned.onnx
+
+Listing initializers in decoder.onnx:
+Initializers in /home/njuttu_umass_edu/on-DeviceNLP/outs/Vocab_Red_NoQuant/checkpoint-4924000_pruned/decoder.onnx:
+  • decoder.embed_tokens.weight               [8001, 384]  →  3,072,384 elements
+  • onnx::MatMul_653                          [384, 768]  →  294,912 elements
+  • onnx::MatMul_654                          [768, 384]  →  294,912 elements
+  • onnx::MatMul_699                          [384, 768]  →  294,912 elements
+  • onnx::MatMul_700                          [768, 384]  →  294,912 elements
+  • decoder.embed_positions.weight            [512, 384]  →  196,608 elements
+  • onnx::MatMul_609                          [384, 384]  →  147,456 elements
+  • onnx::MatMul_610                          [384, 384]  →  147,456 elements
+  • onnx::MatMul_617                          [384, 384]  →  147,456 elements
+  • onnx::MatMul_630                          [384, 384]  →  147,456 elements
+  • onnx::MatMul_631                          [384, 384]  →  147,456 elements
+  • onnx::MatMul_632                          [384, 384]  →  147,456 elements
+  • onnx::MatMul_639                          [384, 384]  →  147,456 elements
+  • onnx::MatMul_652                          [384, 384]  →  147,456 elements
+  • onnx::MatMul_655                          [384, 384]  →  147,456 elements
+  • onnx::MatMul_656                          [384, 384]  →  147,456 elements
+  • onnx::MatMul_663                          [384, 384]  →  147,456 elements
+  • onnx::MatMul_676                          [384, 384]  →  147,456 elements
+  • onnx::MatMul_677                          [384, 384]  →  147,456 elements
+  • onnx::MatMul_678                          [384, 384]  →  147,456 elements
+  • onnx::MatMul_685                          [384, 384]  →  147,456 elements
+  • onnx::MatMul_698                          [384, 384]  →  147,456 elements
+  • decoder.layers.0.fc1.bias                 [768]  →  768 elements
+  • decoder.layers.1.fc1.bias                 [768]  →  768 elements
+  • decoder.layers.0.self_attn.k_proj.bias    [384]  →  384 elements
+  • decoder.layers.0.self_attn.v_proj.bias    [384]  →  384 elements
+  • decoder.layers.0.self_attn.q_proj.bias    [384]  →  384 elements
+  • decoder.layers.0.self_attn.out_proj.bias  [384]  →  384 elements
+  • decoder.layers.0.self_attn_layer_norm.weight  [384]  →  384 elements
+  • decoder.layers.0.self_attn_layer_norm.bias  [384]  →  384 elements
+  • decoder.layers.0.encoder_attn.k_proj.bias  [384]  →  384 elements
+  • decoder.layers.0.encoder_attn.v_proj.bias  [384]  →  384 elements
+  • decoder.layers.0.encoder_attn.q_proj.bias  [384]  →  384 elements
+  • decoder.layers.0.encoder_attn.out_proj.bias  [384]  →  384 elements
+  • decoder.layers.0.encoder_attn_layer_norm.weight  [384]  →  384 elements
+  • decoder.layers.0.encoder_attn_layer_norm.bias  [384]  →  384 elements
+  • decoder.layers.0.fc2.bias                 [384]  →  384 elements
+  • decoder.layers.0.final_layer_norm.weight  [384]  →  384 elements
+  • decoder.layers.0.final_layer_norm.bias    [384]  →  384 elements
+  • decoder.layers.1.self_attn.k_proj.bias    [384]  →  384 elements
+  • decoder.layers.1.self_attn.v_proj.bias    [384]  →  384 elements
+  • decoder.layers.1.self_attn.q_proj.bias    [384]  →  384 elements
+  • decoder.layers.1.self_attn.out_proj.bias  [384]  →  384 elements
+  • decoder.layers.1.self_attn_layer_norm.weight  [384]  →  384 elements
+  • decoder.layers.1.self_attn_layer_norm.bias  [384]  →  384 elements
+  • decoder.layers.1.encoder_attn.k_proj.bias  [384]  →  384 elements
+  • decoder.layers.1.encoder_attn.v_proj.bias  [384]  →  384 elements
+  • decoder.layers.1.encoder_attn.q_proj.bias  [384]  →  384 elements
+  • decoder.layers.1.encoder_attn.out_proj.bias  [384]  →  384 elements
+  • decoder.layers.1.encoder_attn_layer_norm.weight  [384]  →  384 elements
+  • decoder.layers.1.encoder_attn_layer_norm.bias  [384]  →  384 elements
+  • decoder.layers.1.fc2.bias                 [384]  →  384 elements
+  • decoder.layers.1.final_layer_norm.weight  [384]  →  384 elements
+  • decoder.layers.1.final_layer_norm.bias    [384]  →  384 elements
+
+Pruning decoder.onnx (decoder.embed_tokens.weight) ...
+Stripping ['decoder.embed_tokens.weight'] from /home/njuttu_umass_edu/on-DeviceNLP/outs/Vocab_Red_NoQuant/checkpoint-4924000_pruned/decoder.onnx
+Pruned model saved to /home/njuttu_umass_edu/on-DeviceNLP/outs/Vocab_Red_NoQuant/checkpoint-4924000_pruned/decoder_pruned.onnx
+
+Pruned file sizes:
+-rw-rw-r-- 1 njuttu_umass_edu njuttu_umass_edu 15M Jun  6 20:38 /home/njuttu_umass_edu/on-DeviceNLP/outs/Vocab_Red_NoQuant/checkpoint-4924000_pruned/decoder.onnx
+-rw-rw-r-- 1 njuttu_umass_edu njuttu_umass_edu 56M Jun  6 20:38 /home/njuttu_umass_edu/on-DeviceNLP/outs/Vocab_Red_NoQuant/checkpoint-4924000_pruned/encoder.onnx
+All done. Your pruned ONNX files now live in: /home/njuttu_umass_edu/on-DeviceNLP/outs/Vocab_Red_NoQuant/checkpoint-4924000_pruned

@@ -10,7 +10,7 @@
 source /home/njuttu_umass_edu/venvs/torch_env/bin/activate
 cd /home/njuttu_umass_edu/on-DeviceNLP/VocabRed_to_ONNX
 
-python Onnx_dynamic_Quant/convert.py \
+python /home/njuttu_umass_edu/on-DeviceNLP/VocabRed_to_ONNX/Onnx_dynamic_Quant/convert.py \
   --model-dir /home/njuttu_umass_edu/on-DeviceNLP/VocabRed_to_ONNX/checkpoint-4924000 \
   --tokenizer-dir /home/njuttu_umass_edu/on-DeviceNLP/VocabRed_to_ONNX/checkpoint-4924000 \
   -o /home/njuttu_umass_edu/on-DeviceNLP/outs/Vocab_Red_NoQuant \
